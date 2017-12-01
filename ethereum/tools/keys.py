@@ -15,14 +15,9 @@ scrypt
 
 """)
     scrypt = None
-try:
-    import bitcoin
-except ImportError:
-    sys.stderr.write("""
-Failed to import bitcoin. This is not a fatal error but does
-mean that you will not be able to determine the address from
-your wallet file.
-""")
+
+from .bitcointools import privtopub
+
 import binascii
 import struct
 from math import ceil
@@ -264,4 +259,4 @@ if sys.version_info.major == 3:
 def privtoaddr(x):
     if len(x) > 32:
         x = decode_hex(x)
-    return sha3(bitcoin.privtopub(x)[1:])[12:]
+    return sha3(privtopub(x)[1:])[12:]
