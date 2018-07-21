@@ -166,83 +166,10 @@ class _LogJSONEncoder(JSONEncoder):
 
 
 class SLogger(logging.Logger):
-
-    def __init__(self, name, level=DEFAULT_LOGLEVEL):
-        self.warn = self.warning
-        super(SLogger, self).__init__(name, level=level)
-
-    @property
-    def log_json(self):
-        return SLogger.manager.log_json
-
-    def is_active(self, level_name='trace'):
-        return self.isEnabledFor(logging._checkLevel(level_name.upper()))
-
-    def format_message(self, msg, kwargs, highlight, level):
-        if getattr(self, 'log_json', False):
-            message = dict()
-            message['event'] = '{}.{}'.format(
-                self.name, msg.lower().replace(' ', '_'))
-            message['level'] = logging.getLevelName(level)
-            try:
-                message.update(kwargs)
-                try:
-                    msg = json.dumps(message, cls=_LogJSONEncoder)
-                except TypeError:
-                    # Invalid value. With our custom encoder this can only happen with non-string
-                    # dict keys (see: https://bugs.python.org/issue18820).
-                    message = _stringify_dict_keys(message)
-                    msg = json.dumps(message, cls=_LogJSONEncoder)
-            except UnicodeDecodeError:
-                message.update({
-                    k: v if is_numeric(v) or isinstance(v, (float, complex)) else repr(v)
-                    for k, v in kwargs.items()
-                })
-                msg = json.dumps(message, cls=_LogJSONEncoder)
-        else:
-            msg = "{}{} {}{}".format(
-                bcolors.WARNING if highlight else "",
-                msg,
-                " ".join("{}={!s}".format(k, v) for k, v in kwargs.items()),
-                bcolors.ENDC if highlight else ""
-            )
-        return msg
-
-    def bind(self, **kwargs):
-        return BoundLogger(self, kwargs)
-
-    def _log(self, level, msg, args, **kwargs):
-        exc_info = kwargs.pop('exc_info', None)
-        extra = kwargs.pop('extra', {})
-        highlight = kwargs.pop('highlight', False)
-        extra['kwargs'] = kwargs
-        extra['original_msg'] = msg
-        msg = self.format_message(msg, kwargs, highlight, level)
-        super(SLogger, self)._log(level, msg, args, exc_info, extra)
-
+    pass
 
 class RootLogger(SLogger):
-
-    """
-    A root logger is not that different to any other logger, except that
-    it must have a logging level and there is only one instance of it in
-    the hierarchy.
-    """
-
-    def __init__(self, level):
-        """
-        Initialize the logger with the name "root".
-        """
-        super(RootLogger, self).__init__("root", level)
-
-    def handle(self, record):
-        if log_listeners:
-            rec_dict = getattr(record, 'kwargs', {}).copy()
-            rec_dict['event'] = getattr(record, 'original_msg', "")
-            for listener in log_listeners:
-                listener(rec_dict)
-        super(RootLogger, self).handle(record)
-
+    pass
 
 class SManager(logging.Manager):
 
